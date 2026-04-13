@@ -37,15 +37,24 @@ const Navbar = () => {
             <a href="#testimonios" className="hover:text-teal transition-colors">Testimonios</a>
           </div>
           {user ? (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleLogout}
-              className="font-heading font-semibold border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground transition-all"
-            >
-              <LogOut className="w-4 h-4 mr-1" />
-              Salir
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                onClick={() => navigate("/dashboard")}
+                className="font-heading font-semibold bg-secondary text-secondary-foreground hover:bg-teal-light transition-all"
+              >
+                Mi Panel
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleLogout}
+                className="font-heading font-semibold border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground transition-all"
+              >
+                <LogOut className="w-4 h-4 mr-1" />
+                Salir
+              </Button>
+            </div>
           ) : (
             <Button
               size="sm"
