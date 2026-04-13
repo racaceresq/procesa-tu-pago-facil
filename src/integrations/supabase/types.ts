@@ -20,6 +20,7 @@ export type Database = {
           created_at: string
           display_name: string | null
           id: string
+          phone: string | null
           updated_at: string
           user_id: string
         }
@@ -28,6 +29,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          phone?: string | null
           updated_at?: string
           user_id: string
         }
@@ -36,6 +38,79 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      registration_notifications: {
+        Row: {
+          display_name: string | null
+          email: string
+          id: string
+          read: boolean
+          registered_at: string
+          user_id: string
+        }
+        Insert: {
+          display_name?: string | null
+          email: string
+          id?: string
+          read?: boolean
+          registered_at?: string
+          user_id: string
+        }
+        Update: {
+          display_name?: string | null
+          email?: string
+          id?: string
+          read?: boolean
+          registered_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          amount: number
+          amount_received: number | null
+          created_at: string
+          currency_from: string
+          currency_to: string
+          description: string | null
+          exchange_rate: number | null
+          id: string
+          status: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          amount_received?: number | null
+          created_at?: string
+          currency_from?: string
+          currency_to?: string
+          description?: string | null
+          exchange_rate?: number | null
+          id?: string
+          status?: string
+          type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          amount_received?: number | null
+          created_at?: string
+          currency_from?: string
+          currency_to?: string
+          description?: string | null
+          exchange_rate?: number | null
+          id?: string
+          status?: string
+          type?: string
           updated_at?: string
           user_id?: string
         }
