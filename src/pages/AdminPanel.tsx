@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, ShieldCheck, DollarSign, Mail, Users, RefreshCw, CheckCircle, XCircle, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, ShieldCheck, DollarSign, Mail, Users, RefreshCw, CheckCircle, XCircle, Plus } from "lucide-react";
 import logo from "@/assets/logo.png";
 
 const AdminPanel = () => {
@@ -25,7 +25,7 @@ const AdminPanel = () => {
   // Rate
   const [manualRate, setManualRate] = useState("");
   const [currentRate, setCurrentRate] = useState<any>(null);
-  const [fetchingRate, setFetchingRate] = useState(false);
+  
 
   useEffect(() => {
     checkAdmin();
@@ -114,23 +114,6 @@ const AdminPanel = () => {
     fetchPaypalAccounts();
   };
 
-  const handleFetchBCVRate = async () => {
-    setFetchingRate(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("fetch-bcv-rate");
-      if (error) throw error;
-      if (data?.success) {
-        toast({ title: "Tasa actualizada", description: `Tasa BCV: ${data.rate} Bs/$` });
-        fetchCurrentRate();
-      } else {
-        throw new Error(data?.error || "Error desconocido");
-      }
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
-    } finally {
-      setFetchingRate(false);
-    }
-  };
 
   const handleSetManualRate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -330,22 +313,12 @@ const AdminPanel = () => {
               </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="border border-border rounded-lg p-4">
-                <h3 className="font-heading font-semibold mb-3">Obtener automáticamente del BCV</h3>
-                <Button onClick={handleFetchBCVRate} disabled={fetchingRate} className="w-full bg-secondary text-secondary-foreground hover:bg-teal-light">
-                  <RefreshCw className={`w-4 h-4 mr-1 ${fetchingRate ? "animate-spin" : ""}`} />
-                  {fetchingRate ? "Obteniendo..." : "Obtener Tasa BCV"}
-                </Button>
-              </div>
-
-              <div className="border border-border rounded-lg p-4">
-                <h3 className="font-heading font-semibold mb-3">Ingresar manualmente</h3>
-                <form onSubmit={handleSetManualRate} className="flex gap-2">
-                  <Input type="number" step="0.01" min="0" value={manualRate} onChange={(e) => setManualRate(e.target.value)} placeholder="Ej: 36.50" className="flex-1" required />
-                  <Button type="submit" className="bg-secondary text-secondary-foreground hover:bg-teal-light">Guardar</Button>
-                </form>
-              </div>
+            <div className="border border-border rounded-lg p-4">
+              <h3 className="font-heading font-semibold mb-3">Ingresar tasa del día</h3>
+              <form onSubmit={handleSetManualRate} className="flex gap-2">
+                <Input type="number" step="0.01" min="0" value={manualRate} onChange={(e) => setManualRate(e.target.value)} placeholder="Ej: 36.50" className="flex-1" required />
+                <Button type="submit" className="bg-secondary text-secondary-foreground hover:bg-teal-light">Guardar</Button>
+              </form>
             </div>
           </div>
         )}
