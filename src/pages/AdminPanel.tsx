@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, ShieldCheck, DollarSign, Mail, Users, RefreshCw, CheckCircle, XCircle, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, ShieldCheck, DollarSign, Mail, Users, RefreshCw, CheckCircle, XCircle, Plus } from "lucide-react";
 import logo from "@/assets/logo.png";
 
 const AdminPanel = () => {
