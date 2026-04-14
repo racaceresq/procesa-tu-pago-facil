@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, ShieldCheck, DollarSign, Mail, Users, RefreshCw, CheckCircle, XCircle, Plus } from "lucide-react";
+import { ArrowLeft, ShieldCheck, DollarSign, Mail, Users, CheckCircle, XCircle, Plus } from "lucide-react";
 import logo from "@/assets/logo.png";
 
 const AdminPanel = () => {
@@ -14,60 +14,39 @@ const AdminPanel = () => {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<"verifications" | "transactions" | "paypal" | "rates">("verifications");
 
-  // Verifications
   const [pendingProfiles, setPendingProfiles] = useState<any[]>([]);
-  // Transactions
   const [allTransactions, setAllTransactions] = useState<any[]>([]);
-  // PayPal accounts
   const [paypalAccounts, setPaypalAccounts] = useState<any[]>([]);
   const [newPaypalEmail, setNewPaypalEmail] = useState("");
   const [newPaypalLabel, setNewPaypalLabel] = useState("");
-  // Rate
-  const [manualRate, setManualRate] = useState("");
-  const [currentRate, setCurrentRate] = useState<any>(null);
-  
 
-  useEffect(() => {
-    checkAdmin();
-  }, []);
+  // Rates
+  const [rateUnder50, setRateUnder50] = useState("");
+  const [rateOver100, setRateOver100] = useState("");
+  const [pagoMovilCommission, setPagoMovilCommission] = useState("");
+  const [currentRate, setCurrentRate] = useState<any>(null);
+
+  useEffect(() => { checkAdmin(); }, []);
 
   const checkAdmin = async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) { navigate("/auth"); return; }
-
-    const { data: roles } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", session.user.id);
-
-    const admin = roles?.some((r: any) => r.role === "admin");
-    if (!admin) { navigate("/dashboard"); return; }
+    const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", session.user.id);
+    if (!roles?.some((r: any) => r.role === "admin")) { navigate("/dashboard"); return; }
     setIsAdmin(true);
     setLoading(false);
     fetchAll();
   };
 
-  const fetchAll = () => {
-    fetchPendingProfiles();
-    fetchAllTransactions();
-    fetchPaypalAccounts();
-    fetchCurrentRate();
-  };
+  const fetchAll = () => { fetchPendingProfiles(); fetchAllTransactions(); fetchPaypalAccounts(); fetchCurrentRate(); };
 
   const fetchPendingProfiles = async () => {
-    const { data } = await supabase
-      .from("profiles")
-      .select("*")
-      .in("verification_status", ["submitted", "pending", "rejected"])
-      .order("created_at", { ascending: false });
+    const { data } = await supabase.from("profiles").select("*").in("verification_status", ["submitted", "pending", "rejected"]).order("created_at", { ascending: false });
     if (data) setPendingProfiles(data);
   };
 
   const fetchAllTransactions = async () => {
-    const { data } = await supabase
-      .from("transactions")
-      .select("*")
-      .order("created_at", { ascending: false });
+    const { data } = await supabase.from("transactions").select("*").order("created_at", { ascending: false });
     if (data) setAllTransactions(data);
   };
 
@@ -77,15 +56,17 @@ const AdminPanel = () => {
   };
 
   const fetchCurrentRate = async () => {
-    const { data } = await supabase.from("exchange_rates").select("*").eq("source", "BCV").order("rate_date", { ascending: false }).limit(1);
-    if (data && data.length > 0) setCurrentRate(data[0]);
+    const { data } = await supabase.from("exchange_rates").select("*").order("rate_date", { ascending: false }).limit(1);
+    if (data && data.length > 0) {
+      setCurrentRate(data[0]);
+      setRateUnder50((data[0] as any).rate_under_50?.toString() || "");
+      setRateOver100((data[0] as any).rate_over_100?.toString() || "");
+      setPagoMovilCommission((data[0] as any).pago_movil_commission?.toString() || "0");
+    }
   };
 
   const handleVerify = async (profileId: string, status: "verified" | "rejected") => {
-    const { error } = await supabase
-      .from("profiles")
-      .update({ verification_status: status } as any)
-      .eq("id", profileId);
+    const { error } = await supabase.from("profiles").update({ verification_status: status } as any).eq("id", profileId);
     if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
     toast({ title: status === "verified" ? "¡Verificado!" : "Rechazado", description: `El usuario ha sido ${status === "verified" ? "verificado" : "rechazado"}.` });
     fetchPendingProfiles();
@@ -104,8 +85,7 @@ const AdminPanel = () => {
     const { error } = await supabase.from("paypal_accounts").insert({ email: newPaypalEmail.trim(), label: newPaypalLabel.trim() || null } as any);
     if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Agregado", description: "Cuenta PayPal agregada." });
-    setNewPaypalEmail("");
-    setNewPaypalLabel("");
+    setNewPaypalEmail(""); setNewPaypalLabel("");
     fetchPaypalAccounts();
   };
 
@@ -114,20 +94,23 @@ const AdminPanel = () => {
     fetchPaypalAccounts();
   };
 
-
-  const handleSetManualRate = async (e: React.FormEvent) => {
+  const handleSetRates = async (e: React.FormEvent) => {
     e.preventDefault();
-    const rateNum = parseFloat(manualRate);
-    if (isNaN(rateNum) || rateNum <= 0) return;
+    const r50 = parseFloat(rateUnder50);
+    const r100 = parseFloat(rateOver100);
+    const commission = parseFloat(pagoMovilCommission) || 0;
+    if (isNaN(r50) || r50 <= 0 || isNaN(r100) || r100 <= 0) {
+      toast({ title: "Error", description: "Ingresa tasas válidas para ambos rangos.", variant: "destructive" });
+      return;
+    }
 
     const today = new Date().toISOString().split("T")[0];
     const { error } = await supabase.from("exchange_rates").upsert(
-      { rate: rateNum, source: "BCV", rate_date: today } as any,
+      { rate: r50, rate_under_50: r50, rate_over_100: r100, pago_movil_commission: commission, source: "manual", rate_date: today } as any,
       { onConflict: "source,rate_date" }
     );
     if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
-    toast({ title: "Tasa actualizada", description: `Nueva tasa: ${rateNum} Bs/$` });
-    setManualRate("");
+    toast({ title: "Tasas actualizadas", description: `Menor a $50: ${r50} Bs/$ | Mayor a $100: ${r100} Bs/$` });
     fetchCurrentRate();
   };
 
@@ -138,7 +121,7 @@ const AdminPanel = () => {
     { key: "verifications", label: "Verificaciones", icon: ShieldCheck },
     { key: "transactions", label: "Transacciones", icon: DollarSign },
     { key: "paypal", label: "Cuentas PayPal", icon: Mail },
-    { key: "rates", label: "Tasa BCV", icon: RefreshCw },
+    { key: "rates", label: "Tasas del día", icon: DollarSign },
   ] as const;
 
   return (
@@ -158,22 +141,16 @@ const AdminPanel = () => {
       </header>
 
       <div className="container mx-auto px-4 py-6 max-w-6xl">
-        {/* Tabs */}
         <div className="flex gap-2 mb-6 overflow-x-auto">
           {tabs.map((t) => (
-            <Button
-              key={t.key}
-              variant={tab === t.key ? "default" : "outline"}
-              size="sm"
-              onClick={() => setTab(t.key)}
-              className={tab === t.key ? "bg-secondary text-secondary-foreground" : ""}
-            >
+            <Button key={t.key} variant={tab === t.key ? "default" : "outline"} size="sm" onClick={() => setTab(t.key)}
+              className={tab === t.key ? "bg-secondary text-secondary-foreground" : ""}>
               <t.icon className="w-4 h-4 mr-1" /> {t.label}
             </Button>
           ))}
         </div>
 
-        {/* Verifications Tab */}
+        {/* Verifications */}
         {tab === "verifications" && (
           <div className="bg-card rounded-lg border border-border p-6">
             <h2 className="text-lg font-heading font-bold mb-4">Verificaciones Pendientes</h2>
@@ -193,8 +170,7 @@ const AdminPanel = () => {
                         <div className="w-32 h-24 bg-muted rounded overflow-hidden">
                           <img
                             src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/authenticated/id-photos/${(p as any).id_photo_url}`}
-                            alt="ID"
-                            className="w-full h-full object-cover"
+                            alt="ID" className="w-full h-full object-cover"
                             onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }}
                           />
                         </div>
@@ -215,7 +191,7 @@ const AdminPanel = () => {
           </div>
         )}
 
-        {/* Transactions Tab */}
+        {/* Transactions */}
         {tab === "transactions" && (
           <div className="bg-card rounded-lg border border-border p-6">
             <h2 className="text-lg font-heading font-bold mb-4">Todas las Transacciones</h2>
@@ -224,10 +200,11 @@ const AdminPanel = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Fecha</TableHead>
+                    <TableHead>Remitente PayPal</TableHead>
                     <TableHead>Monto USD</TableHead>
                     <TableHead>Bs</TableHead>
                     <TableHead>Método</TableHead>
-                    <TableHead>PayPal</TableHead>
+                    <TableHead>PayPal destino</TableHead>
                     <TableHead>Estado</TableHead>
                     <TableHead>Acciones</TableHead>
                   </TableRow>
@@ -236,6 +213,7 @@ const AdminPanel = () => {
                   {allTransactions.map((tx) => (
                     <TableRow key={tx.id}>
                       <TableCell className="text-sm">{new Date(tx.created_at).toLocaleDateString("es-ES")}</TableCell>
+                      <TableCell className="text-sm">{(tx as any).paypal_sender_name || "—"}</TableCell>
                       <TableCell className="text-sm font-medium">${tx.amount}</TableCell>
                       <TableCell className="text-sm">{tx.amount_received?.toLocaleString("es-VE", { minimumFractionDigits: 2 })}</TableCell>
                       <TableCell className="text-sm">{(tx as any).payment_method || "—"}</TableCell>
@@ -269,7 +247,7 @@ const AdminPanel = () => {
           </div>
         )}
 
-        {/* PayPal Accounts Tab */}
+        {/* PayPal Accounts */}
         {tab === "paypal" && (
           <div className="bg-card rounded-lg border border-border p-6">
             <h2 className="text-lg font-heading font-bold mb-4">Cuentas PayPal</h2>
@@ -287,39 +265,61 @@ const AdminPanel = () => {
                     <p className="font-semibold">{acc.email}</p>
                     {acc.label && <p className="text-xs text-muted-foreground">{acc.label}</p>}
                   </div>
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="outline" onClick={() => handleTogglePaypal(acc.id, acc.is_active)}>
-                      {acc.is_active ? "Desactivar" : "Activar"}
-                    </Button>
-                  </div>
+                  <Button size="sm" variant="outline" onClick={() => handleTogglePaypal(acc.id, acc.is_active)}>
+                    {acc.is_active ? "Desactivar" : "Activar"}
+                  </Button>
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        {/* Rates Tab */}
+        {/* Rates */}
         {tab === "rates" && (
           <div className="bg-card rounded-lg border border-border p-6 space-y-6">
-            <h2 className="text-lg font-heading font-bold mb-4">Tasa de Cambio BCV</h2>
+            <h2 className="text-lg font-heading font-bold mb-4">Tasas del Día</h2>
 
             {currentRate && (
-              <div className="bg-muted rounded-lg p-4">
-                <p className="text-sm text-muted-foreground">Tasa actual:</p>
-                <p className="text-2xl font-heading font-bold text-secondary">
-                  {Number(currentRate.rate).toLocaleString("es-VE", { minimumFractionDigits: 2 })} Bs/$
-                </p>
-                <p className="text-xs text-muted-foreground">Fecha: {currentRate.rate_date}</p>
+              <div className="bg-muted rounded-lg p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">Menos de $50</p>
+                  <p className="text-xl font-heading font-bold text-secondary">
+                    {Number((currentRate as any).rate_under_50 || 0).toLocaleString("es-VE", { minimumFractionDigits: 2 })} Bs/$
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Más de $100</p>
+                  <p className="text-xl font-heading font-bold text-secondary">
+                    {Number((currentRate as any).rate_over_100 || 0).toLocaleString("es-VE", { minimumFractionDigits: 2 })} Bs/$
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Comisión Pago Móvil</p>
+                  <p className="text-xl font-heading font-bold text-secondary">
+                    {Number((currentRate as any).pago_movil_commission || 0).toLocaleString("es-VE", { minimumFractionDigits: 2 })} Bs
+                  </p>
+                </div>
               </div>
             )}
 
-            <div className="border border-border rounded-lg p-4">
-              <h3 className="font-heading font-semibold mb-3">Ingresar tasa del día</h3>
-              <form onSubmit={handleSetManualRate} className="flex gap-2">
-                <Input type="number" step="0.01" min="0" value={manualRate} onChange={(e) => setManualRate(e.target.value)} placeholder="Ej: 36.50" className="flex-1" required />
-                <Button type="submit" className="bg-secondary text-secondary-foreground hover:bg-teal-light">Guardar</Button>
-              </form>
-            </div>
+            <form onSubmit={handleSetRates} className="border border-border rounded-lg p-4 space-y-4">
+              <h3 className="font-heading font-semibold">Actualizar tasas</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Tasa menos de $50</label>
+                  <Input type="number" step="0.01" min="0" value={rateUnder50} onChange={(e) => setRateUnder50(e.target.value)} placeholder="Ej: 55.00" required />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Tasa más de $100</label>
+                  <Input type="number" step="0.01" min="0" value={rateOver100} onChange={(e) => setRateOver100(e.target.value)} placeholder="Ej: 57.00" required />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Comisión Pago Móvil (Bs)</label>
+                  <Input type="number" step="0.01" min="0" value={pagoMovilCommission} onChange={(e) => setPagoMovilCommission(e.target.value)} placeholder="Ej: 1.50" />
+                </div>
+              </div>
+              <Button type="submit" className="bg-secondary text-secondary-foreground hover:bg-teal-light">Guardar tasas</Button>
+            </form>
           </div>
         )}
       </div>

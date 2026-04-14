@@ -18,24 +18,33 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          pago_movil_commission: number
           rate: number
           rate_date: string
+          rate_over_100: number | null
+          rate_under_50: number | null
           source: string
           updated_at: string
         }
         Insert: {
           created_at?: string
           id?: string
+          pago_movil_commission?: number
           rate: number
           rate_date?: string
+          rate_over_100?: number | null
+          rate_under_50?: number | null
           source?: string
           updated_at?: string
         }
         Update: {
           created_at?: string
           id?: string
+          pago_movil_commission?: number
           rate?: number
           rate_date?: string
+          rate_over_100?: number | null
+          rate_under_50?: number | null
           source?: string
           updated_at?: string
         }
@@ -151,6 +160,7 @@ export type Database = {
           id: string
           payment_method: string | null
           paypal_account_used: string | null
+          paypal_sender_name: string | null
           status: string
           type: string
           updated_at: string
@@ -172,6 +182,7 @@ export type Database = {
           id?: string
           payment_method?: string | null
           paypal_account_used?: string | null
+          paypal_sender_name?: string | null
           status?: string
           type?: string
           updated_at?: string
@@ -193,6 +204,7 @@ export type Database = {
           id?: string
           payment_method?: string | null
           paypal_account_used?: string | null
+          paypal_sender_name?: string | null
           status?: string
           type?: string
           updated_at?: string
