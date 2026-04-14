@@ -330,22 +330,12 @@ const AdminPanel = () => {
               </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="border border-border rounded-lg p-4">
-                <h3 className="font-heading font-semibold mb-3">Obtener automáticamente del BCV</h3>
-                <Button onClick={handleFetchBCVRate} disabled={fetchingRate} className="w-full bg-secondary text-secondary-foreground hover:bg-teal-light">
-                  <RefreshCw className={`w-4 h-4 mr-1 ${fetchingRate ? "animate-spin" : ""}`} />
-                  {fetchingRate ? "Obteniendo..." : "Obtener Tasa BCV"}
-                </Button>
-              </div>
-
-              <div className="border border-border rounded-lg p-4">
-                <h3 className="font-heading font-semibold mb-3">Ingresar manualmente</h3>
-                <form onSubmit={handleSetManualRate} className="flex gap-2">
-                  <Input type="number" step="0.01" min="0" value={manualRate} onChange={(e) => setManualRate(e.target.value)} placeholder="Ej: 36.50" className="flex-1" required />
-                  <Button type="submit" className="bg-secondary text-secondary-foreground hover:bg-teal-light">Guardar</Button>
-                </form>
-              </div>
+            <div className="border border-border rounded-lg p-4">
+              <h3 className="font-heading font-semibold mb-3">Ingresar tasa del día</h3>
+              <form onSubmit={handleSetManualRate} className="flex gap-2">
+                <Input type="number" step="0.01" min="0" value={manualRate} onChange={(e) => setManualRate(e.target.value)} placeholder="Ej: 36.50" className="flex-1" required />
+                <Button type="submit" className="bg-secondary text-secondary-foreground hover:bg-teal-light">Guardar</Button>
+              </form>
             </div>
           </div>
         )}
