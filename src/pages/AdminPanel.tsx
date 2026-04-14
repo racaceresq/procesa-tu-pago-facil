@@ -25,7 +25,7 @@ const AdminPanel = () => {
   // Rate
   const [manualRate, setManualRate] = useState("");
   const [currentRate, setCurrentRate] = useState<any>(null);
-  const [fetchingRate, setFetchingRate] = useState(false);
+  
 
   useEffect(() => {
     checkAdmin();
@@ -114,23 +114,6 @@ const AdminPanel = () => {
     fetchPaypalAccounts();
   };
 
-  const handleFetchBCVRate = async () => {
-    setFetchingRate(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("fetch-bcv-rate");
-      if (error) throw error;
-      if (data?.success) {
-        toast({ title: "Tasa actualizada", description: `Tasa BCV: ${data.rate} Bs/$` });
-        fetchCurrentRate();
-      } else {
-        throw new Error(data?.error || "Error desconocido");
-      }
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
-    } finally {
-      setFetchingRate(false);
-    }
-  };
 
   const handleSetManualRate = async (e: React.FormEvent) => {
     e.preventDefault();
