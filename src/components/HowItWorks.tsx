@@ -1,11 +1,11 @@
 import { motion } from "framer-motion";
-import { MessageCircle, DollarSign, CreditCard, CheckCircle } from "lucide-react";
+import { UserPlus, ShieldCheck, Send, Banknote } from "lucide-react";
 
 const steps = [
-  { icon: MessageCircle, title: "Contáctanos", desc: "Escríbenos por WhatsApp con el monto que deseas cambiar." },
-  { icon: DollarSign, title: "Te cotizamos", desc: "Te damos la mejor tasa del mercado en segundos." },
-  { icon: CreditCard, title: "Envías tu saldo", desc: "Transfiere tu saldo PayPal de forma segura." },
-  { icon: CheckCircle, title: "Recibes Bs", desc: "Tu pago en bolívares llega en minutos a tu cuenta." },
+  { icon: UserPlus, title: "Regístrate", desc: "Crea tu cuenta en nuestra plataforma de forma rápida y sencilla." },
+  { icon: ShieldCheck, title: "Verifica tu identidad", desc: "Sube tu cédula de identidad para validar tu cuenta." },
+  { icon: Send, title: "Envía tu saldo", desc: "Transfiere tu saldo PayPal a nuestras cuentas de forma segura." },
+  { icon: Banknote, title: "Recibe en Bs", desc: "Tu pago en bolívares llega en minutos a tu cuenta bancaria." },
 ];
 
 const HowItWorks = () => (
@@ -24,7 +24,6 @@ const HowItWorks = () => (
       </motion.div>
 
       <div className="grid md:grid-cols-4 gap-8 relative">
-        {/* Connecting line */}
         <div className="hidden md:block absolute top-12 left-[12.5%] right-[12.5%] h-0.5 bg-border" />
 
         {steps.map((s, i) => (

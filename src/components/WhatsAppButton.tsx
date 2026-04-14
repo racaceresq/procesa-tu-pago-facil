@@ -1,6 +1,6 @@
 import { MessageCircle } from "lucide-react";
 
-const WHATSAPP_URL = "https://wa.me/584121234567?text=Hola%2C%20quiero%20vender%20mi%20saldo%20PayPal";
+const WHATSAPP_URL = "https://wa.me/584128272470?text=Hola%2C%20quiero%20vender%20mi%20saldo%20PayPal";
 
 const WhatsAppButton = ({ children, className = "", size = "default" }: { children: React.ReactNode; className?: string; size?: "default" | "lg" }) => (
   <a
