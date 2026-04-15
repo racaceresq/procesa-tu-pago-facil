@@ -53,12 +53,13 @@ const ExchangeFlow = ({ userId }: Props) => {
   const paypalFee = numAmount * 0.054 + 0.30;
   const netAmount = Math.max(numAmount - paypalFee, 0);
 
-  // Select rate based on gross amount
-  const rateUnder50 = Number((rateData as any)?.rate_under_50) || 0;
-  const rateOver100 = Number((rateData as any)?.rate_over_100) || 0;
-  const pagoMovilCommission = Number((rateData as any)?.pago_movil_commission) || 0;
+  // Select rate based on gross amount, fallback to base rate
+  const baseRate = Number(rateData?.rate) || 0;
+  const rateUnder50 = Number(rateData?.rate_under_50) || baseRate;
+  const rateOver100 = Number(rateData?.rate_over_100) || baseRate;
+  const pagoMovilCommission = Number(rateData?.pago_movil_commission) || 0;
 
-  const appliedRate = numAmount >= 100 ? rateOver100 : rateUnder50;
+  const appliedRate = numAmount >= 100 ? rateOver100 : numAmount < 50 ? rateUnder50 : baseRate;
   const bolivaresGross = netAmount * appliedRate;
   const bolivares = paymentMethod === "pago_movil" ? Math.max(bolivaresGross - pagoMovilCommission, 0) : bolivaresGross;
 
