@@ -155,10 +155,11 @@ const ExchangeFlow = ({ userId }: Props) => {
           </h3>
 
           {rateData && (
-            <div className="bg-muted/50 rounded-lg p-3 text-sm space-y-1">
+          <div className="bg-muted/50 rounded-lg p-3 text-sm space-y-1">
               <p><strong className="text-secondary">Tasas del día:</strong></p>
-              <p>Menos de $50: <strong>{rateUnder50.toLocaleString("es-VE", { minimumFractionDigits: 2 })} Bs/$</strong></p>
-              <p>Más de $100: <strong>{rateOver100.toLocaleString("es-VE", { minimumFractionDigits: 2 })} Bs/$</strong></p>
+              {rateUnder50 > 0 && <p>Menos de $50: <strong>{rateUnder50.toLocaleString("es-VE", { minimumFractionDigits: 2 })} Bs/$</strong></p>}
+              {baseRate > 0 && baseRate !== rateUnder50 && baseRate !== rateOver100 && <p>$50 - $99: <strong>{baseRate.toLocaleString("es-VE", { minimumFractionDigits: 2 })} Bs/$</strong></p>}
+              {rateOver100 > 0 && <p>$100 o más: <strong>{rateOver100.toLocaleString("es-VE", { minimumFractionDigits: 2 })} Bs/$</strong></p>}
               {pagoMovilCommission > 0 && <p>Comisión Pago Móvil: <strong>{pagoMovilCommission.toLocaleString("es-VE", { minimumFractionDigits: 2 })} Bs</strong></p>}
             </div>
           )}
