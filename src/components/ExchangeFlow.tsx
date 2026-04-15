@@ -53,12 +53,13 @@ const ExchangeFlow = ({ userId }: Props) => {
   const paypalFee = numAmount * 0.054 + 0.30;
   const netAmount = Math.max(numAmount - paypalFee, 0);
 
-  // Select rate based on gross amount
-  const rateUnder50 = Number((rateData as any)?.rate_under_50) || 0;
-  const rateOver100 = Number((rateData as any)?.rate_over_100) || 0;
-  const pagoMovilCommission = Number((rateData as any)?.pago_movil_commission) || 0;
+  // Select rate based on gross amount, fallback to base rate
+  const baseRate = Number(rateData?.rate) || 0;
+  const rateUnder50 = Number(rateData?.rate_under_50) || baseRate;
+  const rateOver100 = Number(rateData?.rate_over_100) || baseRate;
+  const pagoMovilCommission = Number(rateData?.pago_movil_commission) || 0;
 
-  const appliedRate = numAmount >= 100 ? rateOver100 : rateUnder50;
+  const appliedRate = numAmount >= 100 ? rateOver100 : numAmount < 50 ? rateUnder50 : baseRate;
   const bolivaresGross = netAmount * appliedRate;
   const bolivares = paymentMethod === "pago_movil" ? Math.max(bolivaresGross - pagoMovilCommission, 0) : bolivaresGross;
 
@@ -154,10 +155,11 @@ const ExchangeFlow = ({ userId }: Props) => {
           </h3>
 
           {rateData && (
-            <div className="bg-muted/50 rounded-lg p-3 text-sm space-y-1">
+          <div className="bg-muted/50 rounded-lg p-3 text-sm space-y-1">
               <p><strong className="text-secondary">Tasas del día:</strong></p>
-              <p>Menos de $50: <strong>{rateUnder50.toLocaleString("es-VE", { minimumFractionDigits: 2 })} Bs/$</strong></p>
-              <p>Más de $100: <strong>{rateOver100.toLocaleString("es-VE", { minimumFractionDigits: 2 })} Bs/$</strong></p>
+              {rateUnder50 > 0 && <p>Menos de $50: <strong>{rateUnder50.toLocaleString("es-VE", { minimumFractionDigits: 2 })} Bs/$</strong></p>}
+              {baseRate > 0 && baseRate !== rateUnder50 && baseRate !== rateOver100 && <p>$50 - $99: <strong>{baseRate.toLocaleString("es-VE", { minimumFractionDigits: 2 })} Bs/$</strong></p>}
+              {rateOver100 > 0 && <p>$100 o más: <strong>{rateOver100.toLocaleString("es-VE", { minimumFractionDigits: 2 })} Bs/$</strong></p>}
               {pagoMovilCommission > 0 && <p>Comisión Pago Móvil: <strong>{pagoMovilCommission.toLocaleString("es-VE", { minimumFractionDigits: 2 })} Bs</strong></p>}
             </div>
           )}
@@ -175,7 +177,7 @@ const ExchangeFlow = ({ userId }: Props) => {
               <div className="bg-muted rounded-lg p-3 text-sm space-y-1">
                 <p>Comisión PayPal (5.4% + $0.30): <strong className="text-destructive">-${paypalFee.toFixed(2)}</strong></p>
                 <p>Monto neto: <strong>${netAmount.toFixed(2)}</strong></p>
-                <p>Tasa aplicada ({numAmount >= 100 ? ">$100" : "<$50"}): <strong>{appliedRate.toLocaleString("es-VE", { minimumFractionDigits: 2 })} Bs/$</strong></p>
+                <p>Tasa aplicada ({numAmount >= 100 ? "≥$100" : numAmount < 50 ? "<$50" : "$50-$99"}): <strong>{appliedRate.toLocaleString("es-VE", { minimumFractionDigits: 2 })} Bs/$</strong></p>
                 {paymentMethod === "pago_movil" && pagoMovilCommission > 0 && (
                   <p>Comisión Pago Móvil: <strong className="text-destructive">-{pagoMovilCommission.toLocaleString("es-VE", { minimumFractionDigits: 2 })} Bs</strong></p>
                 )}
