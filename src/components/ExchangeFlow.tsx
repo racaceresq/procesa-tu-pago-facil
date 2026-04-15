@@ -177,7 +177,7 @@ const ExchangeFlow = ({ userId }: Props) => {
               <div className="bg-muted rounded-lg p-3 text-sm space-y-1">
                 <p>Comisión PayPal (5.4% + $0.30): <strong className="text-destructive">-${paypalFee.toFixed(2)}</strong></p>
                 <p>Monto neto: <strong>${netAmount.toFixed(2)}</strong></p>
-                <p>Tasa aplicada ({numAmount >= 100 ? ">$100" : "<$50"}): <strong>{appliedRate.toLocaleString("es-VE", { minimumFractionDigits: 2 })} Bs/$</strong></p>
+                <p>Tasa aplicada ({numAmount >= 100 ? "≥$100" : numAmount < 50 ? "<$50" : "$50-$99"}): <strong>{appliedRate.toLocaleString("es-VE", { minimumFractionDigits: 2 })} Bs/$</strong></p>
                 {paymentMethod === "pago_movil" && pagoMovilCommission > 0 && (
                   <p>Comisión Pago Móvil: <strong className="text-destructive">-{pagoMovilCommission.toLocaleString("es-VE", { minimumFractionDigits: 2 })} Bs</strong></p>
                 )}
